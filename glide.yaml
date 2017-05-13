@@ -1,0 +1,5 @@
+package: github.com/rollulus/kafcat
+import:
+- package: github.com/Shopify/sarama
+  version: ^1.12.0
+- package: github.com/spf13/cobra
