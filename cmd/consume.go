@@ -64,10 +64,11 @@ func BeyondHighWaterMark(b bool) ConsumerOption {
 
 func FromTime(t time.Time) ConsumerOption {
 	return func(c *Consumer) error {
-		log.Printf("consopt: consume tmin %s", t.Format(time.RFC3339Nano))
-
+		tMs := t.UnixNano() / 1000000
+		log.Printf("consopt: consume tmin %s (%d ms)", t.Format(time.RFC3339Nano), tMs)
 		return c.bootstrapStartOffset(func(p int32) (int64, error) {
-			return c.Client.GetOffset(c.Topic, p, t.UnixNano()/1000000)
+			log.Printf("obtain offset for %s:%d", c.Topic, p)
+			return c.Client.GetOffset(c.Topic, p, tMs)
 		})
 	}
 }

@@ -18,19 +18,23 @@ var since string
 
 func init() {
 	dumpCmd.Flags().BoolVarP(&follow, "follow", "f", false, "don't quit on end of log; keep following the topic")
-	dumpCmd.Flags().StringVarP(&since, "since", "s", "", "only return logs newer than a relative duration like 5s, 2m, or 3h")
+	dumpCmd.Flags().StringVarP(&since, "since", "s", "", "only return logs newer than a relative duration like 5s, 2m, or 3h, or shorthands 0 and now")
 	RootCmd.AddCommand(dumpCmd)
 }
 
 func parseSince() (ConsumerOption, error) {
-	if since == "" {
+	switch since {
+	case "":
 		return FromOldestOffset(), nil
+	case "0", "now":
+		return FromCurrentOffset(), nil
+	default:
+		du, err := time.ParseDuration(since)
+		if err != nil {
+			return nil, err
+		}
+		return FromTime(time.Now().Add(-du)), nil
 	}
-	du, err := time.ParseDuration(since)
-	if err != nil {
-		return nil, err
-	}
-	return FromTime(time.Now().Add(-du)), nil
 }
 
 func parseFollow() (ConsumerOption, error) {
