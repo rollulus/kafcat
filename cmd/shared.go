@@ -6,9 +6,10 @@ import (
 	"log"
 	"time"
 
-	yaml "gopkg.in/yaml.v1"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/Shopify/sarama"
+	"github.com/rollulus/kafcat/pkg/kafcat"
 )
 
 type ConsumerMessage struct {
@@ -24,6 +25,12 @@ func getClient() (sarama.Client, error) {
 	cfg := sarama.NewConfig()
 	cfg.Version = sarama.V0_10_1_0
 	return sarama.NewClient([]string{broker}, cfg)
+}
+
+func formatTopics(ts []kafcat.TopicInfo) error {
+	bs, err := yaml.Marshal(ts)
+	fmt.Printf("%s", string(bs))
+	return err
 }
 
 func format(m *sarama.ConsumerMessage) error {
