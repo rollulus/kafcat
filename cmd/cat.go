@@ -10,6 +10,7 @@ import (
 
 	"time"
 
+	"github.com/rollulus/kafcat/pkg/consumer"
 	"github.com/spf13/cobra"
 )
 
@@ -22,23 +23,23 @@ func init() {
 	RootCmd.AddCommand(dumpCmd)
 }
 
-func parseSince() (ConsumerOption, error) {
+func parseSince() (consumer.ConsumerOption, error) {
 	switch since {
 	case "":
-		return FromOldestOffset(), nil
+		return consumer.FromOldestOffset(), nil
 	case "0", "now":
-		return FromCurrentOffset(), nil
+		return consumer.FromCurrentOffset(), nil
 	default:
 		du, err := time.ParseDuration(since)
 		if err != nil {
 			return nil, err
 		}
-		return FromTime(time.Now().Add(-du)), nil
+		return consumer.FromTime(time.Now().Add(-du)), nil
 	}
 }
 
-func parseFollow() (ConsumerOption, error) {
-	return BeyondHighWaterMark(follow), nil
+func parseFollow() (consumer.ConsumerOption, error) {
+	return consumer.BeyondHighWaterMark(follow), nil
 }
 
 var dumpCmd = &cobra.Command{
@@ -64,7 +65,7 @@ var dumpCmd = &cobra.Command{
 			return err
 		}
 
-		con, err := NewConsumer(client, topic, AllPartitions(), fOpt, sOpt)
+		con, err := consumer.New(client, topic, consumer.AllPartitions(), fOpt, sOpt)
 
 		if err != nil {
 			return err
@@ -95,10 +96,6 @@ var dumpCmd = &cobra.Command{
 				return nil
 			}
 		}
-
-		return nil
-
-		// return dump(c, "tweets")
 	},
 }
 

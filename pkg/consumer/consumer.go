@@ -1,26 +1,14 @@
-package cmd
+package consumer
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/Shopify/sarama"
-	yaml "gopkg.in/yaml.v2"
 )
-
-var OffsetInfinite = int64(1<<63 - 1)
-
-type ConsumerMessage struct {
-	Key, Value string
-	Topic      string
-	Partition  int32
-	Offset     int64
-	Timestamp  time.Time // only set if kafka is version 0.10+
-}
 
 type Consumer struct {
 	Client          sarama.Client
@@ -98,7 +86,7 @@ func Nop() ConsumerOption {
 	}
 }
 
-func NewConsumer(client sarama.Client, topic string, opts ...ConsumerOption) (*Consumer, error) {
+func New(client sarama.Client, topic string, opts ...ConsumerOption) (*Consumer, error) {
 	c := &Consumer{Client: client, Topic: topic}
 
 	for _, o := range opts {
@@ -108,14 +96,6 @@ func NewConsumer(client sarama.Client, topic string, opts ...ConsumerOption) (*C
 	}
 
 	return c, nil
-}
-
-func format(m *sarama.ConsumerMessage) error {
-	fmt.Printf("---\n")
-	cm := ConsumerMessage{hex.Dump(m.Key), hex.Dump(m.Value), m.Topic, m.Partition, m.Offset, m.Timestamp}
-	bs, err := yaml.Marshal(cm)
-	fmt.Printf("%s", string(bs))
-	return err
 }
 
 // for all existing partitions
@@ -194,11 +174,4 @@ func (c *Consumer) Messages(ctx context.Context) (chan *sarama.ConsumerMessage, 
 		close(fanIn)
 	}()
 	return fanIn, errors, nil
-}
-
-func getClient() (sarama.Client, error) {
-	log.Printf("broker: %s\n", broker)
-	cfg := sarama.NewConfig()
-	cfg.Version = sarama.V0_10_1_0
-	return sarama.NewClient([]string{broker}, cfg)
 }
