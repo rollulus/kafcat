@@ -1,5 +1,5 @@
 hash: 8e276aaedb6e18c720f0bb3727e9f23327582678c230eb14ae03b43cdd7f14be
-updated: 2017-05-12T13:59:11.259349788+02:00
+updated: 2017-05-13T14:27:52.774111538+02:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
@@ -31,4 +31,6 @@ imports:
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
 - name: github.com/spf13/pflag
   version: 5ccb023bc27df288a957c5e994cd44fd19619465
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports: []

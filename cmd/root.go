@@ -9,6 +9,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	GitCommit string
+	GitTag    string
+	SemVer    string
+)
+
 var broker string
 var verbose = false
 
