@@ -28,6 +28,7 @@ var RootCmd = &cobra.Command{
 			log.SetOutput(ioutil.Discard)
 		}
 	},
+	SilenceUsage: true,
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.

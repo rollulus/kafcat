@@ -13,13 +13,21 @@ import (
 type Consumer struct {
 	Client          sarama.Client
 	Topic           string
-	Partitions      []int32
+	Partitions      map[int32]bool
 	TMax            *time.Time
 	BeyondHighWater bool
 	StartOffset     map[int32]int64 // per partition
 }
 
 type ConsumerOption func(*Consumer) error
+
+func SpecificPartitions(ps map[int32]bool) ConsumerOption {
+	return func(c *Consumer) error {
+		log.Printf("consopt: consume specific partitions %#v", ps)
+		c.Partitions = ps
+		return nil
+	}
+}
 
 func AllPartitions() ConsumerOption {
 	return func(c *Consumer) error {
@@ -29,7 +37,10 @@ func AllPartitions() ConsumerOption {
 			return err
 		}
 		log.Printf("consopt: consume all partitions %#v", parts)
-		c.Partitions = parts
+		c.Partitions = map[int32]bool{}
+		for _, p := range parts {
+			c.Partitions[p] = true
+		}
 		return nil
 	}
 }
@@ -133,7 +144,8 @@ func (c *Consumer) Messages(ctx context.Context) (chan *sarama.ConsumerMessage, 
 
 	var wg sync.WaitGroup
 
-	for p, off := range c.StartOffset {
+	for p := range c.Partitions {
+		off := c.StartOffset[p]
 		wg.Add(1)
 		log.Printf("consume %d %d", p, off)
 		go func(p int32, off int64) {
