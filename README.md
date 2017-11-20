@@ -2,6 +2,8 @@
 
 Kafcat is supposed to be(come) the swiss army knife for Apache Kafka. It is in an early stage right now.
 
+Kafcat is a single statically linked binary. That means that you can just `curl` it into your containers or onto your VMs and go.
+
 # Examples
 
 To see what is exactly in a topic since 5 minutes ago:
