@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rollulus/kafcat.svg?branch=master)](https://travis-ci.org/rollulus/kafcat)
+
 # Kafcat
 
 Kafcat is supposed to be(come) the swiss army knife for Apache Kafka. It is in an early stage right now.
