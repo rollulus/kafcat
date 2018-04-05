@@ -18,7 +18,7 @@ LD_RELEASE_FLAGS += -X github.com/rollulus/kafcat/cmd.SemVer=${VERSION}
 default: build
 
 bootstrap:
-	glide install -v
+	dep ensure
 
 clean:
 	rm -rf $(BUILD_DIR)
