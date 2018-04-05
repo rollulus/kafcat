@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/rollulus/kafcat.svg?branch=master)](https://travis-ci.org/rollulus/kafcat)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rollulus/kafcat)](https://goreportcard.com/report/github.com/rollulus/kafcat)
 
 # Kafcat
 
