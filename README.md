@@ -7,6 +7,12 @@ Kafcat is supposed to be(come) the swiss army knife for Apache Kafka. It is in a
 
 Kafcat is a single statically linked binary. That means that you can just `curl` it into your containers or onto your VMs and go.
 
+# Installation
+
+Get a pre-built Linux/macOS binary from the [releases](https://github.com/rollulus/kafcat/releases) or DIY:
+
+    make bootstrap build
+
 # Examples
 
 To see what is exactly in a topic since 5 minutes ago:
