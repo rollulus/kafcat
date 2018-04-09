@@ -66,7 +66,26 @@ To get more in-depth topic information:
 
 # Commands
 
-The following sub commands are available:
+    $ kafcat --help
+    The pretended Swiss army knife for Apache Kafka
+
+    Usage:
+      kafcat [command]
+
+    Available Commands:
+      cat
+      topics
+      version
+
+    Flags:
+      -b, --broker-list string   brokers (default "localhost:9092")
+          --client-cert string   filename of the client certificate in PEM format
+          --client-key string    filename of the client's private key in PEM format
+          --root-ca string       filename of the root certificate in PEM format
+      -v, --verbose              be verbose
+
+    Use "kafcat [command] --help" for more information about a command.
+
 
 ## kafcat cat
 
@@ -74,8 +93,9 @@ Inspect topic contents.
 
 ### Usage
 
+    $ kafcat cat --help
     Usage:
-      kafcat cat <topic>[:partition] [flags]
+      kafcat cat <topic>[:partition[,partition]*] [flags]
 
     Flags:
       -f, --follow         don't quit on end of log; keep following the topic
@@ -83,6 +103,9 @@ Inspect topic contents.
 
     Global Flags:
       -b, --broker-list string   brokers (default "localhost:9092")
+          --client-cert string   filename of the client certificate in PEM format
+          --client-key string    filename of the client's private key in PEM format
+          --root-ca string       filename of the root certificate in PEM format
       -v, --verbose              be verbose
 
 ### Example
@@ -118,6 +141,7 @@ List topics and topic properties.
 
 ### Usage
 
+    $ kafcat topics --help
     Usage:
       kafcat topics [flags]
 
@@ -132,6 +156,9 @@ List topics and topic properties.
 
     Global Flags:
       -b, --broker-list string   brokers (default "localhost:9092")
+          --client-cert string   filename of the client certificate in PEM format
+          --client-key string    filename of the client's private key in PEM format
+          --root-ca string       filename of the root certificate in PEM format
       -v, --verbose              be verbose
 
 ### Example
