@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"time"
 
@@ -23,6 +26,36 @@ type ConsumerMessage struct {
 func getClient() (sarama.Client, error) {
 	log.Printf("broker: %s\n", broker)
 	cfg := sarama.NewConfig()
+
+	pool := x509.NewCertPool()
+	if rootCA != "" {
+		log.Printf("load rootca from: `%s`", rootCA)
+		bs, err := ioutil.ReadFile(rootCA)
+		if err != nil {
+			return nil, fmt.Errorf("readfile of `%s` error: %s", rootCA, err)
+		}
+		if ok := pool.AppendCertsFromPEM(bs); !ok {
+			return nil, fmt.Errorf("AppendCertsFromPEM failed")
+		}
+		cfg.Net.TLS.Enable = true
+	}
+
+	var certs []tls.Certificate
+	if certPEM != "" && keyPEM != "" {
+		log.Printf("load client cert from: `%s` and `%s`", certPEM, keyPEM)
+		crt, err := tls.LoadX509KeyPair(certPEM, keyPEM)
+		if err != nil {
+			return nil, fmt.Errorf("LoadX509KeyPair: %s", err)
+		}
+		certs = append(certs, crt)
+		cfg.Net.TLS.Enable = true
+	}
+
+	cfg.Net.TLS.Config = &tls.Config{
+		RootCAs:      pool,
+		Certificates: certs,
+	}
+
 	cfg.Version = sarama.V0_10_1_0
 	return sarama.NewClient([]string{broker}, cfg)
 }

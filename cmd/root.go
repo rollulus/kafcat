@@ -10,6 +10,9 @@ import (
 )
 
 var broker string
+var rootCA string
+var certPEM string
+var keyPEM string
 var verbose = false
 
 // RootCmd represents the base command when called without any subcommands
@@ -37,4 +40,7 @@ func Execute() {
 func init() {
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "be verbose")
 	RootCmd.PersistentFlags().StringVarP(&broker, "broker-list", "b", "localhost:9092", "brokers")
+	RootCmd.PersistentFlags().StringVar(&rootCA, "root-ca", "", "filename of the root certificate in PEM format")
+	RootCmd.PersistentFlags().StringVar(&certPEM, "client-cert", "", "filename of the client certificate in PEM format")
+	RootCmd.PersistentFlags().StringVar(&keyPEM, "client-key", "", "filename of the client's private key in PEM format")
 }
