@@ -13,10 +13,10 @@ import (
 type Consumer struct {
 	Client          sarama.Client
 	Topic           string
-	Partitions      map[int32]bool
-	TMax            *time.Time
-	BeyondHighWater bool
-	StartOffset     map[int32]int64 // per partition
+	Partitions      map[int32]bool  // which partitions to consume
+	TMax            *time.Time      // abort consumption if a message later than this is received
+	BeyondHighWater bool            // if set, wait for new messages. otherwise, consumption stops when last message (acc to high wtr) is received.
+	StartOffset     map[int32]int64 // start offset per partition
 }
 
 type ConsumerOption func(*Consumer) error
@@ -145,11 +145,10 @@ func (c *Consumer) Messages(ctx context.Context) (chan *sarama.ConsumerMessage, 
 	var wg sync.WaitGroup
 
 	for p := range c.Partitions {
-		off := c.StartOffset[p]
 		wg.Add(1)
-		log.Printf("consume %d %d", p, off)
-		go func(p int32, off int64) {
-			pc, err := cons.ConsumePartition(c.Topic, p, off)
+		log.Printf("consume part=%d startOffset=%d", p, c.StartOffset[p])
+		go func(p int32, startOffset int64) {
+			pc, err := cons.ConsumePartition(c.Topic, p, startOffset)
 			if err != nil {
 				wg.Done()
 				errors <- err
@@ -158,11 +157,17 @@ func (c *Consumer) Messages(ctx context.Context) (chan *sarama.ConsumerMessage, 
 			// waits for context and async closes PartitionConsumer
 			go func(pc sarama.PartitionConsumer) {
 				<-ctx.Done()
-				log.Printf("async close gorout %d %d", p, off)
+				log.Printf("async close gorout %d %d", p, startOffset)
 				pc.AsyncClose()
 			}(pc)
 			// fans PartitionConsumer's messages into fanIn
 			go func(pc sarama.PartitionConsumer) {
+				defer wg.Done()
+				// are we consuming from the head of the log and not waiting for new messages? then let's be done directly. TODO: don't even start
+				if startOffset == sarama.OffsetNewest && !c.BeyondHighWater {
+					log.Printf("quick exit: startOffset == sarama.OffsetNewest")
+					return
+				}
 				for m := range pc.Messages() {
 					if c.TMax != nil && m.Timestamp.After(*c.TMax) {
 						log.Printf("timestamp %s > tmax %s; quit", m.Timestamp, c.TMax)
@@ -174,10 +179,9 @@ func (c *Consumer) Messages(ctx context.Context) (chan *sarama.ConsumerMessage, 
 						break
 					}
 				}
-				log.Printf("exit infanner gorout %d %d", p, off)
-				wg.Done()
+				log.Printf("exit infanner gorout part=%d off=%d", p, startOffset)
 			}(pc)
-		}(p, off)
+		}(p, c.StartOffset[p])
 	}
 
 	go func() {
