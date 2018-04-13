@@ -56,6 +56,8 @@ func getClient() (sarama.Client, error) {
 		Certificates: certs,
 	}
 
+	cfg.ClientID = fmt.Sprintf("kafcat-%s", GitTag)
+
 	cfg.Version = sarama.V0_10_1_0
 	return sarama.NewClient([]string{broker}, cfg)
 }
