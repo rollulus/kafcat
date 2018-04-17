@@ -13,7 +13,8 @@ var broker string
 var rootCA string
 var certPEM string
 var keyPEM string
-var verbose = false
+var verbose bool
+var saramaLog bool
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -38,6 +39,7 @@ func Execute() {
 }
 
 func init() {
+	RootCmd.PersistentFlags().BoolVarP(&saramaLog, "log-client", "w", false, "enable sarama's (underlying kafka client) log to stderr")
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "be verbose")
 	RootCmd.PersistentFlags().StringVarP(&broker, "broker-list", "b", "localhost:9092", "brokers")
 	RootCmd.PersistentFlags().StringVar(&rootCA, "root-ca", "", "filename of the root certificate in PEM format")

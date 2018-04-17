@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
@@ -24,6 +25,10 @@ type ConsumerMessage struct {
 }
 
 func getClient() (sarama.Client, error) {
+	if saramaLog {
+		sarama.Logger = log.New(os.Stderr, "[Sarama] ", log.LstdFlags)
+	}
+
 	log.Printf("broker: %s\n", broker)
 	cfg := sarama.NewConfig()
 
