@@ -67,7 +67,8 @@ func parseFollow() (consumer.ConsumerOption, error) {
 }
 
 var dumpCmd = &cobra.Command{
-	Use: "cat <topic>[:partition[,partition]*] [flags]",
+	Use:   "cat <topic>[:partition[,partition]*] [flags]",
+	Short: "Shows contents of topics",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return errors.New("expect a single argument: topic")

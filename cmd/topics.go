@@ -27,7 +27,8 @@ func init() {
 }
 
 var topicsCmd = &cobra.Command{
-	Use: "topics [flags]",
+	Use:   "topics [flags]",
+	Short: "List available topics",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if all {
 			offsets = true
