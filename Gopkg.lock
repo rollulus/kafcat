@@ -10,12 +10,14 @@
 [[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/eapache/go-resiliency"
   packages = ["breaker"]
-  revision = "b86b1ec0dd4209a588dc1285cdd471e73525c0b3"
+  revision = "ea41b0fad31007accc7f806884dcdf3da98b79ce"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -44,32 +46,38 @@
 [[projects]]
   name = "github.com/pierrec/lz4"
   packages = ["."]
-  revision = "f5b77fd73d83122495309c0f459b810f83cc291f"
+  revision = "2fcda4cb7018ce05a25959d2fe08c83e3329f169"
+  version = "v1.1"
 
 [[projects]]
   name = "github.com/pierrec/xxHash"
   packages = ["xxHash32"]
-  revision = "5a004441f897722c627870a981d02b29924215fa"
+  revision = "f051bb7f1d1aaf1b5a665d74fb6b0217712c69f7"
+  version = "v0.1.1"
 
 [[projects]]
+  branch = "master"
   name = "github.com/rcrowley/go-metrics"
   packages = ["."]
-  revision = "1f30fe9094a513ce4c700b9a54458bbb0c96996c"
+  revision = "d932a24a8ccb8fcadc993e5c6c58f93dac168294"
 
 [[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "f62e98d28ab7ad31d707ba837a966378465c7b57"
+  revision = "a1f051bc3eba734da4772d60e2d677f47cf93ef4"
+  version = "v0.0.2"
 
 [[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "5ccb023bc27df288a957c5e994cd44fd19619465"
+  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
+  version = "v1.0.1"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "a5b47d31c556af34a302ce5d659e6fea44d90de0"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"

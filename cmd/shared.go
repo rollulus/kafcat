@@ -24,11 +24,10 @@ type ConsumerMessage struct {
 	Timestamp  time.Time // only set if kafka is version 0.10+
 }
 
-func getClient() (sarama.Client, error) {
+func getConfig() (*sarama.Config, error) {
 	if saramaLog {
 		sarama.Logger = log.New(os.Stderr, "[Sarama] ", log.LstdFlags)
 	}
-
 	log.Printf("broker: %s\n", broker)
 	cfg := sarama.NewConfig()
 
@@ -64,6 +63,14 @@ func getClient() (sarama.Client, error) {
 	cfg.ClientID = fmt.Sprintf("kafcat-%s", GitTag)
 
 	cfg.Version = sarama.V0_10_1_0
+	return cfg, nil
+}
+
+func getClient() (sarama.Client, error) {
+	cfg, err := getConfig()
+	if err != nil {
+		return nil, err
+	}
 	return sarama.NewClient([]string{broker}, cfg)
 }
 
