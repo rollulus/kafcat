@@ -8,6 +8,7 @@ import (
 	"github.com/Shopify/sarama"
 
 	"github.com/rollulus/kafcat/pkg/chisel"
+	"github.com/rollulus/kafcat/pkg/kafcat"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -47,7 +48,7 @@ specifying it.`,
 
 		dec := yaml.NewDecoder(os.Stdin)
 		for {
-			var x ConsumerMessage
+			var x kafcat.ConsumerMessage
 			err := dec.Decode(&x)
 			if err == io.EOF {
 				break

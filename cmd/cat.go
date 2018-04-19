@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/rollulus/kafcat/pkg/kafcat"
+
 	"time"
 
 	"strings"
@@ -20,8 +22,10 @@ import (
 
 var follow bool
 var since string
+var forceHex bool
 
 func init() {
+	dumpCmd.Flags().BoolVarP(&forceHex, "hex", "x", false, "show message key / value as hex")
 	dumpCmd.Flags().BoolVarP(&follow, "follow", "f", false, "don't quit on end of log; keep following the topic")
 	dumpCmd.Flags().StringVarP(&since, "since", "s", "", "only return logs newer than a relative duration like 5s, 2m, or 3h, or shorthands 0 and now")
 	RootCmd.AddCommand(dumpCmd)
@@ -95,6 +99,8 @@ var dumpCmd = &cobra.Command{
 			return err
 		}
 
+		format := &kafcat.Formatter{Out: os.Stdout, ForceHex: forceHex}
+
 		con, err := consumer.New(client, topic, partitionsOpts, fOpt, sOpt)
 
 		if err != nil {
@@ -118,7 +124,7 @@ var dumpCmd = &cobra.Command{
 					cancel()
 					return nil
 				}
-				format(m)
+				format.FormatConsumerMessage(m)
 
 			case err := <-errs:
 				log.Printf("%s", err)

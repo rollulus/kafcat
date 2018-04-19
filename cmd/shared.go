@@ -3,26 +3,16 @@ package cmd
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
 
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/Shopify/sarama"
 	"github.com/rollulus/kafcat/pkg/kafcat"
 )
-
-type ConsumerMessage struct {
-	Key, Value string
-	Topic      string
-	Partition  int32
-	Offset     int64
-	Timestamp  time.Time // only set if kafka is version 0.10+
-}
 
 func getConfig() (*sarama.Config, error) {
 	if saramaLog {
@@ -76,14 +66,6 @@ func getClient() (sarama.Client, error) {
 
 func formatTopics(ts []kafcat.TopicInfo) error {
 	bs, err := yaml.Marshal(ts)
-	fmt.Printf("%s", string(bs))
-	return err
-}
-
-func format(m *sarama.ConsumerMessage) error {
-	fmt.Printf("---\n")
-	cm := ConsumerMessage{hex.Dump(m.Key), hex.Dump(m.Value), m.Topic, m.Partition, m.Offset, m.Timestamp}
-	bs, err := yaml.Marshal(cm)
 	fmt.Printf("%s", string(bs))
 	return err
 }
