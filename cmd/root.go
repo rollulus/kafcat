@@ -39,7 +39,7 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.PersistentFlags().BoolVarP(&saramaLog, "log-client", "w", false, "enable sarama's (underlying kafka client) log to stderr")
+	RootCmd.PersistentFlags().BoolVarP(&saramaLog, "log-client", "W", false, "enable sarama's (underlying kafka client) log to stderr")
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "be verbose")
 	RootCmd.PersistentFlags().StringVarP(&broker, "broker-list", "b", "localhost:9092", "brokers")
 	RootCmd.PersistentFlags().StringVar(&rootCA, "root-ca", "", "filename of the root certificate in PEM format")
