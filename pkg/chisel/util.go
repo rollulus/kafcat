@@ -3,14 +3,16 @@
 package chisel
 
 import (
-	"bufio"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"regexp"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
+var hexBlobSLineRe = regexp.MustCompile("^[0-9a-fA-F]{8}\\s+[0-9a-fA-F\\s]+\\s+\\|.+\\|")
 var hexBlobLineRe = regexp.MustCompile("([0-9a-fA-F]{8})\\s+([0-9a-fA-F\\s]+).*")
 
 // ParseHexDump reverses hex.Dump(...). Suitable for <1MB inputs only for performance reasons
@@ -33,30 +35,32 @@ func ParseHexDump(s string) ([]byte, error) {
 	return bs, nil
 }
 
-func formatKV(out io.Writer, swallow []string, tr ByteSliceTransformer) error {
-	if len(swallow) <= 1 {
-		return fmt.Errorf("too short")
-	}
-	bs, err := ParseHexDump(strings.Join(swallow[1:], "\n"))
-	if err != nil {
-		return err
-	}
-	return tr(bs, out)
-}
-
-func mustFormatKV(out io.Writer, swallow []string, tr ByteSliceTransformer) {
-	err := formatKV(out, swallow, tr)
-	if err != nil {
-		fmt.Printf("| # error: %s\n", err)
-		if len(swallow) == 1 {
-			return
+// putInMapSlice sets the key to the value
+func putInMapSlice(ms yaml.MapSlice, key interface{}, value interface{}) yaml.MapSlice {
+	for i, m := range ms {
+		if m.Key == key {
+			ms[i].Value = value
 		}
-		fmt.Printf(strings.Join(swallow[1:], "\n") + "\n")
-		return
 	}
+	return ms
 }
 
-type ByteSliceTransformer func([]byte, io.Writer) error
+// converts a mapSliceToMap into a (non-ordered) map
+func mapSliceToMap(ms yaml.MapSlice) map[interface{}]interface{} {
+	ma := map[interface{}]interface{}{}
+	for _, m := range ms {
+		switch m.Value.(type) {
+		case yaml.MapSlice:
+			ma[m.Key] = mapSliceToMap(m.Value.(yaml.MapSlice))
+		default:
+			ma[m.Key] = m.Value
+		}
+	}
+	return ma
+}
+
+type SerializeFunc func(interface{}) ([]byte, error)
+type DeserializeFunc func([]byte) (interface{}, error)
 
 type scannerState int
 
@@ -66,50 +70,98 @@ const (
 	swallowValueHex
 )
 
-func Transform(in io.Reader, out io.Writer, key ByteSliceTransformer, value ByteSliceTransformer) error {
-	scn := bufio.NewScanner(in)
+func parseAsBytes(i interface{}) ([]byte, error) {
+	k, ok := i.(string)
+	if !ok {
+		return nil, fmt.Errorf("bad")
+	}
+	if hexBlobSLineRe.MatchString(k) { //TODO: reconsider. do we really want this?!
+		return ParseHexDump(k)
+	}
+	return []byte(k), nil
+}
 
-	st := searching
-	var swallow []string
-	for scn.Scan() {
-		t := scn.Text()
-	again:
-		switch {
-		case st == searching && t == "key: |":
-			st = swallowKeyHex
-			swallow = []string{t}
+func parseAndDeserialize(i interface{}, t DeserializeFunc) (interface{}, error) {
+	bs, err := parseAsBytes(i)
+	if err != nil {
+		return nil, err
+	}
+	return t(bs)
+}
 
-		case st == searching && t == "value: |":
-			st = swallowValueHex
-			swallow = []string{t}
+// bytes -> interface{}
+func Deserialize(in io.Reader, out io.Writer, deserializeKey DeserializeFunc, deserializeValue DeserializeFunc) error {
+	dec := yaml.NewDecoder(in)
 
-		// searching && not key / value? directly dump
-		case st == searching:
-			fmt.Fprintln(out, t)
-
-		// not searching, swallowing a hex blob and input looks hexish? extend
-		case hexBlobLineRe.MatchString(t):
-			swallow = append(swallow, t)
-
-		// not a string and hexishness ended? process
-		default:
-			if st == swallowKeyHex {
-				fmt.Fprintf(out, "key: ")
-				mustFormatKV(out, swallow, key)
-			} else {
-				fmt.Fprintf(out, "value: ")
-				mustFormatKV(out, swallow, value)
+	for {
+		var msEntry yaml.MapSlice
+		if err := dec.Decode(&msEntry); err != nil {
+			if err == io.EOF {
+				return nil
 			}
-			st = searching
-			goto again
+			return err
 		}
+		entry := mapSliceToMap(msEntry)
+
+		key, err := parseAndDeserialize(entry["key"], deserializeKey)
+		if err != nil {
+			return err
+		}
+
+		value, err := parseAndDeserialize(entry["value"], deserializeValue)
+		if err != nil {
+			return err
+		}
+
+		putInMapSlice(msEntry, "key", key)
+		putInMapSlice(msEntry, "value", value)
+
+		ybs, err := yaml.Marshal(msEntry)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintln(out, "---")
+		fmt.Fprint(out, string(ybs))
 	}
-	if st != searching && len(swallow) > 0 {
-		if st == swallowKeyHex {
-			mustFormatKV(out, swallow, key)
+}
+
+// interface{} -> []byte
+func Serialize(in io.Reader, out io.Writer, serializeKey SerializeFunc, serializeValue SerializeFunc, fmtHex bool) error {
+	dec := yaml.NewDecoder(in)
+
+	for {
+		var msEntry yaml.MapSlice
+		if err := dec.Decode(&msEntry); err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		entry := mapSliceToMap(msEntry)
+
+		key, err := serializeKey(entry["key"])
+		if err != nil {
+			return err
+		}
+
+		value, err := serializeValue(entry["value"])
+		if err != nil {
+			return err
+		}
+
+		if fmtHex {
+			putInMapSlice(msEntry, "key", hex.Dump(key))
+			putInMapSlice(msEntry, "value", hex.Dump(value))
 		} else {
-			mustFormatKV(out, swallow, value)
+			putInMapSlice(msEntry, "key", string(key))
+			putInMapSlice(msEntry, "value", string(value))
 		}
+
+		ybs, err := yaml.Marshal(msEntry)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintln(out, "---")
+		fmt.Fprint(out, string(ybs))
 	}
-	return scn.Err()
 }
